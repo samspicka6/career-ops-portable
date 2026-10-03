@@ -1,0 +1,66 @@
+{
+ "n": "01",
+ "slug": "example-co-backend-engineer-i",
+ "company": "Example Co",
+ "companyShort": "Example Co",
+ "role": "Backend Engineer I",
+ "archetype": "Backend / Platform Engineer (Entry Level) — PRIMARY fit per modes/_profile.md",
+ "score": 4.0,
+ "legit": "High Confidence",
+ "decision": "Apply",
+ "risk": "Medium",
+ "comp": "$95,000 - $120,000",
+ "hard": [],
+ "soft": [
+  "Kubernetes listed as preferred; not in cv.md",
+  "JD asks for 1+ year of production experience; cv.md shows internships only"
+ ],
+ "strengths": [
+  "Internship API work in Go maps to the team's service stack",
+  "Postgres query tuning project matches the 'performance' requirement"
+ ],
+ "next": "Apply; lead with the internship API migration story and the query-tuning project",
+ "discard": [],
+ "domain": "B2B SaaS, payments infrastructure",
+ "func": "Build and operate backend services",
+ "seniority": "Entry level (Engineer I)",
+ "remote": "Hybrid (3 days on-site)",
+ "culture": ["pass", ""],
+ "tldr": "Entry-level backend role building internal APIs in Go on Postgres; close to the candidate's internship work.",
+ "authQuote": "",
+ "reqs": [
+  ["BS in CS or related", "Bachelor's degree in Computer Science or a related field", "stated", "critical", "strong", "cv.md Education: \"B.S. Computer Science\""],
+  ["Go or similar backend language", "Experience with Go, Java, or a similar language", "stated", "critical", "strong", "cv.md Experience: \"Built REST endpoints in Go\""],
+  ["Kubernetes", "Familiarity with Kubernetes is a plus", "stated", "low", "gap", "not in cv.md"]
+ ],
+ "gaps": [
+  ["Kubernetes", "Not in cv.md. Mitigation: mention container work you have actually done; do not claim Kubernetes."]
+ ],
+ "level": "Detected level: Engineer I. Natural level for the candidate: Engineer I.",
+ "demand": "Steady; the team lists three open backend reqs.",
+ "ctype": "Growth-stage private company — Medium confidence",
+ "compNote": "single published band",
+ "baseGuess": "Lower half of the band for a new graduate",
+ "custom": [
+  ["Summary", "Generic software", "Lead with backend API work in Go", "Title is backend"],
+  ["Competencies", "n/a", "Go, REST APIs, PostgreSQL, testing", "Mirror the JD stack"]
+ ],
+ "liHeadline": "Backend Engineering | Go | PostgreSQL",
+ "liSkills": "Go, PostgreSQL, REST APIs",
+ "liOpen": "Backend Engineer roles",
+ "stories": ["api"],
+ "storyMap": ["Design and ship internal APIs"],
+ "caseStudy": "The internship API migration: what changed, how you tested it, and what it improved.",
+ "redQs": [
+  ["You have internships only. Why are you ready for production on-call?", "Walk through how the internship service was deployed and monitored, and what you owned."]
+ ],
+ "descQ": "Specific: named stack, team, pay band",
+ "realism": "Realistic for entry level",
+ "legitNotes": "Posted on the company's own ATS board, first seen in this scan.",
+ "keywords": ["Go", "PostgreSQL", "REST APIs"],
+ "coverOpen": "I am applying for the Backend Engineer I role at Example Co.",
+ "coverIntro": "I have built and tested backend services during my internships.",
+ "coverBullets": [],
+ "coverGaps": ["Kubernetes not in cv.md"],
+ "note": "Entry-level backend; strong stack fit; $95-120k"
+}

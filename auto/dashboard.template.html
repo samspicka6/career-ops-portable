@@ -1,0 +1,501 @@
+<title>__BOARD_TITLE__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+:root {
+  --ground: #F2F4F6;
+  --surface: #FFFFFF;
+  --surface-2: #F7F9FA;
+  --ink: #17212B;
+  --muted: #5A6774;
+  --faint: #8A96A2;
+  --line: #DCE2E7;
+  --accent: #0F6A8C;
+  --accent-soft: #E3F0F5;
+  --good: #23764A;  --good-soft: #E2F2E8;
+  --warn: #9A6412;  --warn-soft: #FBF0DC;
+  --bad: #A83838;   --bad-soft: #F8E4E2;
+  --violet: #5B4BA8; --violet-soft: #ECE9F8;
+  --shadow: 0 1px 2px rgba(23,33,43,.06), 0 4px 14px rgba(23,33,43,.05);
+  --display: "IBM Plex Sans Condensed", "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #0E1418; --surface: #151D23; --surface-2: #1A232A;
+    --ink: #E3E9EE; --muted: #97A5B1; --faint: #6D7B87; --line: #27323B;
+    --accent: #56B6D6; --accent-soft: #15313D;
+    --good: #5CC08A; --good-soft: #15321F;
+    --warn: #E0A64A; --warn-soft: #3A2C12;
+    --bad: #EE7B73;  --bad-soft: #3E1D1B;
+    --violet: #A89BEA; --violet-soft: #2A2548;
+    --shadow: 0 1px 2px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #0E1418; --surface: #151D23; --surface-2: #1A232A;
+  --ink: #E3E9EE; --muted: #97A5B1; --faint: #6D7B87; --line: #27323B;
+  --accent: #56B6D6; --accent-soft: #15313D;
+  --good: #5CC08A; --good-soft: #15321F;
+  --warn: #E0A64A; --warn-soft: #3A2C12;
+  --bad: #EE7B73;  --bad-soft: #3E1D1B;
+  --violet: #A89BEA; --violet-soft: #2A2548;
+  --shadow: 0 1px 2px rgba(0,0,0,.4);
+}
+* { box-sizing: border-box; }
+body { background: var(--ground); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 64px; display: grid; gap: 20px; }
+.wrap > *, .list > *, .row-main > * { min-width: 0; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; }
+.eyebrow { font-family: var(--display); font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(26px, 4vw, 34px); line-height: 1.1; margin: 4px 0 0; text-wrap: balance; }
+.meta { font-size: 13px; color: var(--muted); display: grid; gap: 2px; justify-items: end; text-align: right; }
+.meta b { color: var(--ink); font-weight: 500; }
+.sync { font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
+.sync::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
+.sync.live::before { background: var(--good); }
+.sync.local::before { background: var(--warn); }
+
+.strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.stat { padding: 13px 16px; border-right: 1px solid var(--line); display: grid; gap: 2px; text-align: left; background: none; border-top: 0; border-bottom: 0; border-left: 0; font: inherit; color: inherit; cursor: pointer; }
+.stat:last-child { border-right: 0; }
+.stat:hover { background: var(--surface-2); }
+.stat .n { font-family: var(--mono); font-size: 25px; font-weight: 600; line-height: 1.1; }
+.stat .l { font-family: var(--display); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.stat.good .n { color: var(--good); } .stat.accent .n { color: var(--accent); } .stat.warn .n { color: var(--warn); } .stat.violet .n { color: var(--violet); }
+
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.tab { appearance: none; border: 0; background: none; font: 600 14px var(--display); letter-spacing: .04em; color: var(--muted); padding: 10px 14px; border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tab .c { font-family: var(--mono); font-weight: 500; color: var(--faint); margin-left: 6px; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+.controls > * { max-width: 100%; }
+.search { flex: 1 1 240px; min-width: 0; }
+input[type="search"], select, textarea { width: 100%; font: 14px var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; }
+select { width: auto; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); flex-wrap: wrap; }
+.seg button { appearance: none; border: 0; background: none; font: 500 13px var(--body); color: var(--muted); padding: 8px 12px; cursor: pointer; border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+.btn { appearance: none; font: 500 13px var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; cursor: pointer; white-space: nowrap; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+.btn.primary:hover { filter: brightness(1.08); color: var(--surface); }
+.btn.applyb { border-color: var(--good); color: var(--good); font-weight: 600; }
+.btn.applyb:hover { background: var(--good-soft); }
+.btn.ghost { border-color: transparent; color: var(--muted); padding-inline: 8px; }
+.btn.ghost:hover { color: var(--bad); border-color: transparent; }
+.btn[disabled] { opacity: .5; cursor: not-allowed; }
+.export { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+.count { font-size: 13px; color: var(--muted); }
+
+.list { display: grid; gap: 10px; }
+.row { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); }
+.row.tracked { border-left: 3px solid var(--good); }
+.row.dim { opacity: .62; }
+.row.starred { border-left: 3px solid var(--warn); }
+.btn.star { color: var(--warn); border-color: var(--line); font-size: 15px; padding-inline: 10px; }
+.btn.star:hover, .btn.star.on { background: var(--warn-soft); border-color: var(--warn); color: var(--warn); }
+.chip.gold { background: var(--warn-soft); color: var(--warn); border-color: transparent; font-weight: 600; }
+.row-main { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: 14px 18px; align-items: center; padding: 14px 16px; }
+.score { width: 76px; border-radius: 8px; padding: 8px 0 7px; text-align: center; border: 1px solid var(--line); position: relative; overflow: hidden; background: var(--surface-2); }
+.score::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--faint); }
+.score .v { font-family: var(--mono); font-size: 22px; font-weight: 600; line-height: 1; }
+.score .of { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+.score.good::before { background: var(--good); } .score.good .v { color: var(--good); }
+.score.warn::before { background: var(--warn); } .score.warn .v { color: var(--warn); }
+.score.bad::before { background: var(--bad); }   .score.bad .v { color: var(--bad); }
+.who { min-width: 0; display: grid; gap: 3px; }
+.who .id { font-family: var(--mono); font-size: 12px; color: var(--faint); overflow-wrap: anywhere; }
+.who .role { font-family: var(--display); font-weight: 600; font-size: 18px; line-height: 1.2; text-wrap: balance; overflow-wrap: anywhere; }
+.who .co { font-size: 14px; color: var(--muted); }
+.who .co b { color: var(--ink); font-weight: 500; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.chip { font-size: 12px; line-height: 1.25; padding: 4px 8px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); max-width: 100%; }
+.chip.good { background: var(--good-soft); color: var(--good); border-color: transparent; }
+.chip.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.chip.bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+.chip.accent { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.chip.violet { background: var(--violet-soft); color: var(--violet); border-color: transparent; }
+.chip.new { background: var(--accent); color: var(--surface); border-color: transparent; font-weight: 600; letter-spacing: .04em; }
+.actions { display: flex; flex-direction: column; gap: 6px; align-items: stretch; min-width: 150px; }
+.actions .pair { display: flex; gap: 6px; }
+.actions .pair > * { flex: 1; }
+.status-sel { font: 600 13px var(--body); padding: 7px 10px; border-color: var(--good); color: var(--good); background: var(--good-soft); }
+.status-sel.st-interviewing { border-color: var(--violet); color: var(--violet); background: var(--violet-soft); }
+.status-sel.st-offer { border-color: var(--good); color: var(--surface); background: var(--good); }
+.status-sel.st-interested { border-color: var(--warn); color: var(--warn); background: var(--warn-soft); }
+.status-sel.st-rejected, .status-sel.st-skipped { border-color: var(--line); color: var(--muted); background: var(--surface-2); }
+
+.detail { border-top: 1px solid var(--line); padding: 16px 16px 18px; display: grid; gap: 16px; }
+.tldr { font-size: 15px; max-width: 72ch; margin: 0; }
+.next { background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; font-size: 14px; max-width: 80ch; }
+.next b { font-family: var(--display); letter-spacing: .06em; text-transform: uppercase; font-size: 12px; color: var(--accent); margin-right: 6px; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px 24px; }
+.cols h3, .notes h3 { font-family: var(--display); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+.cols ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; }
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; font-size: 14px; margin: 0; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; overflow-wrap: anywhere; }
+.notes textarea { min-height: 70px; resize: vertical; }
+.notes .hint { font-size: 12px; color: var(--faint); margin-top: 4px; }
+.report { border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); padding: 4px 18px 14px; font-size: 14px; max-height: 70vh; overflow: auto; }
+.report h1 { font-size: 22px; } .report h2 { font-family: var(--display); font-size: 17px; margin-top: 22px; }
+.report table { border-collapse: collapse; font-size: 13px; display: block; overflow-x: auto; }
+.report th, .report td { border: 1px solid var(--line); padding: 5px 8px; vertical-align: top; text-align: left; }
+.report pre { background: var(--surface); padding: 10px; overflow-x: auto; font-size: 12px; }
+.report code { font-family: var(--mono); font-size: 12.5px; }
+.empty { text-align: center; color: var(--muted); padding: 40px 12px; background: var(--surface); border: 1px dashed var(--line); border-radius: 10px; }
+.drow { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; align-items: center; }
+.drow .reason { font-size: 14px; color: var(--muted); grid-column: 1 / -1; }
+.drow .t { font-family: var(--display); font-weight: 600; font-size: 16px; overflow-wrap: anywhere; }
+.drow .c { font-size: 13px; color: var(--muted); }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--ground); padding: 9px 14px; border-radius: 8px; font-size: 13px; max-width: calc(100% - 32px); }
+textarea.fallback { min-height: 140px; font: 12px var(--mono); }
+footer { font-size: 12px; color: var(--faint); display: grid; gap: 4px; }
+
+@media (max-width: 640px) {
+  .row-main { grid-template-columns: 64px minmax(0, 1fr); }
+  .score { width: 64px; }
+  .actions { grid-column: 1 / -1; min-width: 0; }
+  .actions .btn { white-space: normal; }
+  .stat { border-right: 0; border-bottom: 1px solid var(--line); }
+  .export { margin-left: 0; }
+  select { flex: 1 1 140px; }
+  .meta { justify-items: start; text-align: left; }
+}
+@media (prefers-reduced-motion: no-preference) { .row { transition: border-color .15s, opacity .15s; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">__BOARD_EYEBROW__</div>
+      <h1>__BOARD_TITLE__</h1>
+    </div>
+    <div class="meta" id="meta"></div>
+  </header>
+
+  <section class="strip" id="strip" aria-label="Summary"></section>
+
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+
+  <section class="controls" aria-label="Filters">
+    <div class="search"><input type="search" id="q" placeholder="Search company, role, location, notes…" aria-label="Search"></div>
+    <div class="seg" id="band" role="group" aria-label="Score band">
+      <button data-band="all" aria-pressed="true">All scores</button>
+      <button data-band="apply" aria-pressed="false">4.0+</button>
+      <button data-band="maybe" aria-pressed="false">3.0–3.9</button>
+      <button data-band="low" aria-pressed="false">Under 3</button>
+    </div>
+    <select id="sort" aria-label="Sort">
+      <option value="score">Highest score</option>
+      <option value="new">Newest report</option>
+      <option value="posted">Most recently posted</option>
+      <option value="company">Company A–Z</option>
+    </select>
+    <div class="export">
+      <button class="btn" id="copy-csv">Copy CSV</button>
+      <button class="btn" id="dl-csv" hidden>Download CSV</button>
+    </div>
+  </section>
+  <div class="count" id="count"></div>
+  <div id="fallback-box" hidden><textarea class="fallback" id="fallback" aria-label="Export text" readonly></textarea></div>
+
+  <main class="list" id="list"></main>
+
+  <footer id="foot"></footer>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script id="board-data" type="application/json">__DATA__</script>
+<script>
+(() => {
+  const D = JSON.parse(document.getElementById('board-data').textContent);
+  const R = D.roles;
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const band = (s) => s == null ? 'none' : s >= 4 ? 'good' : s >= 3 ? 'warn' : 'bad';
+  const pad3 = (n) => String(n).padStart(3, '0');
+  const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  const daysSince = (iso) => iso ? Math.floor((Date.now() - new Date(iso + 'T12:00:00').getTime()) / 86400000) : null;
+  const store = { get(k, d) { try { const v = localStorage.getItem('flb:' + k); return v == null ? d : JSON.parse(v); } catch { return d; } }, set(k, v) { try { localStorage.setItem('flb:' + k, JSON.stringify(v)); } catch {} } };
+
+  // ── tracking state: shared db on claude.ai, this browser otherwise ────────
+  const STATUSES = [
+    ['interested', 'Interested'], ['applied', 'Applied'], ['interviewing', 'Interviewing'], ['offer', 'Offer'],
+    ['rejected', 'Rejected'], ['skipped', 'Not interested'],
+  ];
+  const LABEL = Object.fromEntries(STATUSES);
+  const fromTracker = (s) => /^applied|responded/i.test(s) ? 'applied' : /interview/i.test(s) ? 'interviewing' : /offer|hired/i.test(s) ? 'offer' : /rejected/i.test(s) ? 'rejected' : /discarded|skip/i.test(s) ? 'skipped' : null;
+  let track = {};           // num(string, padded) -> {status, appliedOn, note, updatedAt}
+  let mode = 'pending';     // pending | live | local
+  let db = null, dl = null, readOnly = false;
+  const tr = (r) => {
+    const t = track[pad3(r.num)];
+    if (t && t.status && t.status !== 'none') return t;
+    const s = fromTracker(r.status);
+    return s ? { status: s, appliedOn: t?.appliedOn || null, note: t?.note || '', fromTracker: true } : (t || null);
+  };
+  const isActive = (st) => st === 'applied' || st === 'interviewing' || st === 'offer';
+
+  async function write(num, patch) {
+    const key = pad3(num);
+    const next = { ...(track[key] || {}), ...patch, num: key, updatedAt: new Date().toISOString() };
+    track = { ...track, [key]: next };
+    render();
+    if (mode === 'live') {
+      try { await db.collection('tracking').doc(key).set(next); }
+      catch (e) {
+        if (e && e.code === 'invalid_argument') { readOnly = true; toast('This view is read-only — changes are not saved'); }
+        else toast('Could not save — check your connection and try again');
+      }
+    } else {
+      store.set('track', track);
+    }
+  }
+
+  // ── state & static UI ────────────────────────────────────────────────────
+  const state = { tab: store.get('tab', 'review'), q: '', band: store.get('band', 'all'), sort: store.get('sort', 'score'), open: new Set() };
+  const lastVisit = store.get('lastVisit', null);
+  store.set('lastVisit', D.generated);
+  const isNew = (r) => lastVisit && r.date && r.date > String(lastVisit).slice(0, 10);
+
+  $('sort').value = state.sort;
+  const syncBand = () => document.querySelectorAll('#band button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.band === state.band)));
+  syncBand();
+  $('band').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; state.band = b.dataset.band; store.set('band', state.band); syncBand(); render(); });
+  $('q').addEventListener('input', (e) => { state.q = e.target.value.trim().toLowerCase(); render(); });
+  $('sort').addEventListener('change', (e) => { state.sort = e.target.value; store.set('sort', state.sort); render(); });
+
+  const TABS = [['review', 'To review'], ['interested', 'Interested'], ['tracking', 'Applied & in progress'], ['all', 'All evaluated'], ['discards', 'Pre-screen discards']];
+  function tabCounts() {
+    const c = { review: 0, interested: 0, tracking: 0, all: R.length, discards: D.discards.length };
+    for (const r of R) { const t = tr(r); if (!t) c.review++; else if (t.status === 'interested') c.interested++; else if (isActive(t.status)) c.tracking++; }
+    return c;
+  }
+  function renderTabs() {
+    const c = tabCounts();
+    $('tabs').innerHTML = TABS.map(([k, l]) => `<button class="tab" role="tab" data-tab="${k}" aria-selected="${state.tab === k}">${l}<span class="c">${c[k]}</span></button>`).join('');
+  }
+  $('tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (!b) return; setTab(b.dataset.tab); });
+  function setTab(t) { state.tab = t; store.set('tab', t); $('band').hidden = t === 'discards'; $('sort').hidden = t === 'discards'; render(); }
+
+  function renderStrip() {
+    let review = 0, strong = 0, starred = 0, applied = 0, interviewing = 0, followups = 0;
+    for (const r of R) {
+      const t = tr(r);
+      if (!t) { review++; if (r.score >= 4) strong++; }
+      else if (t.status === 'interested') starred++;
+      else if (t.status === 'applied') { applied++; if ((daysSince(t.appliedOn) ?? 0) >= 10) followups++; }
+      else if (t.status === 'interviewing' || t.status === 'offer') interviewing++;
+    }
+    const cells = [
+      ['To review', review, '', 'review'], ['4.0+ not yet reviewed', strong, 'good', 'review:apply'], ['Interested', starred, starred ? 'warn' : '', 'interested'],
+      ['Applied', applied, 'accent', 'tracking'], ['Interviewing / offer', interviewing, 'violet', 'tracking'],
+      ['Follow-ups due', followups, followups ? 'warn' : '', 'tracking'], ['Still in queue', D.pending, '', ''],
+    ];
+    $('strip').innerHTML = cells.map(([l, n, c, go]) => `<button class="stat ${c}" data-go="${go}"><span class="n">${n}</span><span class="l">${l}</span></button>`).join('');
+  }
+  $('strip').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-go]'); if (!b || !b.dataset.go) return;
+    const [t, bd] = b.dataset.go.split(':'); if (bd) { state.band = bd; store.set('band', bd); syncBand(); } setTab(t);
+  });
+
+  function renderMeta() {
+    const sync = mode === 'live' ? '<span class="sync live">Tracking saved to this board — syncs to your tracker on the next run</span>'
+      : mode === 'local' ? '<span class="sync local">Tracking saved in this browser only</span>'
+      : '<span class="sync">Connecting…</span>';
+    $('meta').innerHTML = `<span>Updated <b class="mono">${esc(D.generated)}</b>${D.lastRun ? ` · last auto scan <b class="mono">${esc(D.lastRun)}</b>` : ''}</span>${sync}`;
+  }
+  $('foot').innerHTML = `<span>Built by data/auto/dashboard.mjs from data/applications.md and reports/ (${R.length} reports). Scores are career-ops A–G evaluations out of 5; below 4.0 means apply only with a specific reason.</span><span>☆ saves a role to Interested; “Mark applied” records today’s date. Applications still at Applied after 10 days get a follow-up reminder.</span>`;
+
+  // ── rows ─────────────────────────────────────────────────────────────────
+  const match = (hay) => !state.q || hay.toLowerCase().includes(state.q);
+  function visibleRoles() {
+    let rows = R.filter((r) => match([r.company, r.role, r.location, r.notes, r.archetype, r.status, tr(r)?.note].join(' ')));
+    if (state.tab === 'review') rows = rows.filter((r) => !tr(r));
+    if (state.tab === 'tracking') rows = rows.filter((r) => isActive(tr(r)?.status));
+    if (state.tab === 'interested') rows = rows.filter((r) => tr(r)?.status === 'interested');
+    if (state.band === 'apply') rows = rows.filter((r) => r.score >= 4);
+    if (state.band === 'maybe') rows = rows.filter((r) => r.score >= 3 && r.score < 4);
+    if (state.band === 'low') rows = rows.filter((r) => r.score != null && r.score < 3);
+    const by = {
+      score: (a, b) => (b.score ?? -1) - (a.score ?? -1) || b.num - a.num,
+      new: (a, b) => b.num - a.num,
+      posted: (a, b) => String(b.posted || '').localeCompare(String(a.posted || '')) || (b.score ?? 0) - (a.score ?? 0),
+      company: (a, b) => a.company.localeCompare(b.company) || (b.score ?? 0) - (a.score ?? 0),
+    };
+    if (state.tab === 'tracking') return rows.sort((a, b) => String(tr(b)?.appliedOn || '').localeCompare(String(tr(a)?.appliedOn || '')) || by.score(a, b));
+    return rows.sort(by[state.sort] || by.score);
+  }
+  const visibleDiscards = () => D.discards.filter((d) => match([d.company, d.title, d.reason].join(' ')));
+
+  const legitChip = (l) => !l ? '' : `<span class="chip ${/high/i.test(l) ? 'good' : /caution/i.test(l) ? 'warn' : /suspicious|low/i.test(l) ? 'bad' : ''}">${esc(l)}</span>`;
+  const list = (a) => a && a.length ? `<ul>${a.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="count">None recorded.</p>';
+
+  function trackChips(t) {
+    if (!t) return '';
+    if (t.status === 'interested') return '<span class="chip gold">★ Interested</span>';
+    const cls = t.status === 'interviewing' || t.status === 'offer' ? 'violet' : t.status === 'applied' ? 'good' : '';
+    let s = `<span class="chip ${cls}">${esc(LABEL[t.status] || t.status)}${t.appliedOn ? ` · ${esc(t.appliedOn)}` : ''}</span>`;
+    const age = daysSince(t.appliedOn);
+    if (t.status === 'applied' && age != null && age >= 10) s += `<span class="chip warn">Follow up · ${age} days</span>`;
+    return s;
+  }
+  function actionsHTML(r, t) {
+    const open = state.open.has(r.num);
+    const posting = r.url ? `<a class="btn primary" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">Open posting ↗</a>` : '';
+    const dis = readOnly ? ' disabled' : '';
+    const track = t && t.status === 'interested'
+      ? `<div class="pair"><button class="btn applyb" data-apply="${r.num}"${dis}>✓ Mark applied</button><button class="btn star on" data-unstar="${r.num}" title="Remove from Interested" aria-label="Remove from Interested"${dis}>★</button></div>`
+      : t
+      ? `<select class="status-sel st-${esc(t.status)}" data-status="${r.num}" aria-label="Application status"${dis}>${STATUSES.map(([k, l]) => `<option value="${k}"${k === t.status ? ' selected' : ''}>${l}</option>`).join('')}<option value="none">Clear status</option></select>`
+      : `<div class="pair"><button class="btn applyb" data-apply="${r.num}"${dis}>✓ Mark applied</button><button class="btn star" data-star="${r.num}" title="Mark as interested — save to your shortlist" aria-label="Mark as interested"${dis}>☆</button><button class="btn ghost" data-skip="${r.num}" title="Not interested — hide from To review" aria-label="Not interested"${dis}>✕</button></div>`;
+    return `<div class="actions">${posting}${track}<button class="btn" data-toggle="${r.num}" aria-expanded="${open}">${open ? 'Hide details' : 'Details'}</button></div>`;
+  }
+  function roleHTML(r) {
+    const t = tr(r);
+    const open = state.open.has(r.num);
+    const dim = t && (t.status === 'rejected' || t.status === 'skipped');
+    return `<article class="row${t && isActive(t.status) ? ' tracked' : ''}${t && t.status === 'interested' ? ' starred' : ''}${dim ? ' dim' : ''}" id="r${r.num}">
+      <div class="row-main">
+        <div class="score ${band(r.score)}" aria-label="Score ${r.score ?? 'n/a'} out of 5"><div class="v">${r.score != null ? r.score.toFixed(1) : '—'}</div><div class="of">/ 5</div></div>
+        <div class="who">
+          <span class="id">#${pad3(r.num)} · evaluated ${esc(r.date)}${r.posted ? ` · posted ${esc(r.posted)}` : ''}</span>
+          <span class="role">${esc(r.role)}</span>
+          <span class="co"><b>${esc(r.company)}</b>${r.location ? ` · ${esc(r.location)}` : ''}${r.comp ? ` · ${esc(r.comp)}` : ''}</span>
+          <div class="chips">${r.closed ? '<span class="chip bad">Posting closed</span>' : ''}${isNew(r) ? '<span class="chip new">NEW</span>' : ''}${trackChips(t)}${legitChip(r.legitimacy)}${r.decision ? `<span class="chip">${esc(r.decision)}</span>` : ''}</div>
+        </div>
+        ${actionsHTML(r, t)}
+      </div>
+      ${open ? detailHTML(r, t) : ''}
+    </article>`;
+  }
+  function detailHTML(r, t) {
+    return `<div class="detail">
+      ${r.tldr ? `<p class="tldr">${esc(r.tldr)}</p>` : ''}
+      ${r.next ? `<div class="next"><b>Next</b>${esc(r.next)}</div>` : ''}
+      <div class="cols">
+        <div><h3>Strengths</h3>${list(r.strengths)}</div>
+        <div><h3>Gaps${r.hard && r.hard.length ? ' & hard stops' : ''}</h3>${list([...(r.hard || []).map((h) => 'Hard stop: ' + h), ...(r.gaps || [])])}</div>
+        <div><h3>Facts</h3><dl class="kv">
+          ${r.archetype ? `<dt>Archetype</dt><dd>${esc(r.archetype)}</dd>` : ''}
+          ${r.comp ? `<dt>Pay</dt><dd>${esc(r.comp)}</dd>` : ''}
+          ${r.risk ? `<dt>Risk</dt><dd>${esc(r.risk)}</dd>` : ''}
+          <dt>Report</dt><dd class="mono">${esc(r.reportPath)}</dd>
+          ${r.url ? `<dt>Posting</dt><dd><a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.url.replace(/^https?:\/\//, '').slice(0, 60))}…</a></dd>` : ''}
+          ${r.notes ? `<dt>Tracker note</dt><dd>${esc(r.notes)}</dd>` : ''}
+        </dl></div>
+      </div>
+      <div class="notes"><h3>Your notes</h3><textarea id="note-${r.num}" data-note="${r.num}" placeholder="Recruiter name, referral, interview date…" ${readOnly ? 'readonly' : ''}>${esc(t?.note || track[pad3(r.num)]?.note || '')}</textarea><div class="hint">Saved when you click away.</div></div>
+      <div><button class="btn" data-report="${r.num}">${r._showReport ? 'Hide full report' : 'Read full report'}</button></div>
+      ${r._showReport ? `<div class="report">${renderMd(r.markdown)}</div>` : ''}
+    </div>`;
+  }
+  function renderMd(md) {
+    try { if (window.marked && window.DOMPurify) return DOMPurify.sanitize(marked.parse(md || '')); } catch {}
+    return `<pre>${esc(md)}</pre>`;
+  }
+  function discardHTML(d) {
+    return `<article class="drow"><div><div class="t">${esc(d.title)}</div><div class="c">${esc(d.company)}</div></div>
+      ${d.url ? `<a class="btn" href="${esc(d.url)}" target="_blank" rel="noopener noreferrer">Posting ↗</a>` : '<span></span>'}
+      <div class="reason">${esc(d.reason)}</div></article>`;
+  }
+
+  function render() {
+    // keep an in-progress note edit intact across re-renders
+    const focused = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.note;
+    if (focused) return;
+    renderMeta(); renderStrip(); renderTabs();
+    if (state.tab === 'discards') {
+      const rows = visibleDiscards();
+      $('count').textContent = `${rows.length} postings screened out before a full evaluation`;
+      $('list').innerHTML = rows.length ? rows.map(discardHTML).join('') : '<div class="empty">No discards match this search.</div>';
+      return;
+    }
+    const rows = visibleRoles();
+    const label = { review: 'to review', interested: 'marked interested', tracking: 'applied or in progress', all: 'evaluated' }[state.tab];
+    $('count').textContent = `${rows.length} ${label}`;
+    const empty = state.tab === 'tracking' ? 'Nothing marked applied yet. Use “✓ Mark applied” on a role once you submit.' : state.tab === 'interested' ? 'No roles marked interested yet. Use ☆ on a role to save it here.' : 'No roles match these filters.';
+    $('list').innerHTML = rows.length ? rows.map(roleHTML).join('') : `<div class="empty">${empty}</div>`;
+  }
+
+  // ── interactions ─────────────────────────────────────────────────────────
+  $('list').addEventListener('click', (e) => {
+    const a = e.target.closest('[data-apply]');
+    if (a) { const n = +a.dataset.apply; write(n, { status: 'applied', appliedOn: today() }); toast(`Marked #${pad3(n)} applied`); return; }
+    const st = e.target.closest('[data-star]');
+    if (st) { const n = +st.dataset.star; write(n, { status: 'interested' }); toast(`#${pad3(n)} saved to Interested`); return; }
+    const un = e.target.closest('[data-unstar]');
+    if (un) { const n = +un.dataset.unstar; write(n, { status: 'none' }); toast(`#${pad3(n)} removed from Interested`); return; }
+    const s = e.target.closest('[data-skip]');
+    if (s) { const n = +s.dataset.skip; write(n, { status: 'skipped' }); toast(`#${pad3(n)} hidden from To review`); return; }
+    const t = e.target.closest('[data-toggle]');
+    if (t) { const n = +t.dataset.toggle; state.open.has(n) ? state.open.delete(n) : state.open.add(n); render(); return; }
+    const rp = e.target.closest('[data-report]');
+    if (rp) { const r = R.find((x) => x.num === +rp.dataset.report); r._showReport = !r._showReport; render(); }
+  });
+  $('list').addEventListener('change', (e) => {
+    const sel = e.target.closest('[data-status]');
+    if (!sel) return;
+    const n = +sel.dataset.status, v = sel.value;
+    const cur = tr(R.find((x) => x.num === n)) || {};
+    write(n, { status: v, appliedOn: v === 'none' || v === 'skipped' || v === 'interested' ? (cur.appliedOn || null) : (cur.appliedOn || today()) });
+    toast(v === 'none' ? `Cleared #${pad3(n)}` : `#${pad3(n)} → ${LABEL[v]}`);
+  });
+  $('list').addEventListener('focusout', (e) => {
+    const ta = e.target.closest && e.target.closest('[data-note]');
+    if (!ta) return;
+    const n = +ta.dataset.note, v = ta.value.trim();
+    if ((track[pad3(n)]?.note || '') === v) { setTimeout(render, 0); return; }
+    setTimeout(() => { write(n, { note: v }); toast('Note saved'); }, 0);
+  });
+
+  // ── export ───────────────────────────────────────────────────────────────
+  const cols = ['num', 'date', 'company', 'role', 'score', 'tracking', 'appliedOn', 'myNote', 'legitimacy', 'decision', 'location', 'comp', 'posted', 'url', 'next'];
+  const csvCell = (v) => { const s = Array.isArray(v) ? v.join('; ') : String(v ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  const csv = () => [cols.join(','), ...visibleRoles().map((r) => { const t = tr(r); const row = { ...r, tracking: t ? LABEL[t.status] || t.status : '', appliedOn: t?.appliedOn || '', myNote: t?.note || '' }; return cols.map((c) => csvCell(row[c])).join(','); })].join('\n');
+  function toast(msg) { const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => { t.hidden = true; }, 2200); }
+  $('copy-csv').onclick = async () => {
+    const text = csv();
+    try { await navigator.clipboard.writeText(text); $('fallback-box').hidden = true; toast(`CSV copied — ${visibleRoles().length} rows`); }
+    catch { $('fallback').value = text; $('fallback-box').hidden = false; $('fallback').select(); toast('Clipboard blocked — text selected below, press Ctrl+C'); }
+  };
+  $('dl-csv').onclick = async () => {
+    const filename = `career-ops-roles-${D.generated.slice(0, 10)}.csv`;
+    if (dl) {
+      try { await dl.save({ filename, data: csv() }); toast('CSV saved'); }
+      catch (e) { if (e && e.code !== 'declined') toast('Download unavailable here — use Copy CSV'); }
+      return;
+    }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv()], { type: 'text/csv' })); a.download = filename; a.click();
+  };
+
+  // ── boot ─────────────────────────────────────────────────────────────────
+  setTab(['review', 'interested', 'tracking', 'all', 'discards'].includes(state.tab) ? state.tab : 'review');
+  const hasClaude = !!(window.claude && typeof window.claude.use === 'function');
+  if (location.protocol === 'file:' || !hasClaude) $('dl-csv').hidden = false;
+  function goLocal() { mode = 'local'; track = store.get('track', {}); render(); }
+  if (!hasClaude) { goLocal(); return; }
+  window.claude.use('downloads').then((d) => { dl = d; if (d) $('dl-csv').hidden = false; }).catch(() => {});
+  window.claude.use('db').then((d) => {
+    if (!d) { goLocal(); return; }
+    db = d; mode = 'live'; render();
+    db.collection('tracking').onSnapshot((snap) => {
+      const m = {};
+      for (const doc of snap.docs) if (doc.exists) m[doc.id] = doc.data();
+      track = m; render();
+    }, () => { toast('Live sync stopped — reload to reconnect'); });
+  }).catch(goLocal);
+})();
+</script>

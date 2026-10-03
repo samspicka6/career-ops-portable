@@ -1,0 +1,33 @@
+# career-ops board settings — read by `npm run board`, written by `npm run setup`.
+# Copy to config/board.yml (setup does this for you). Every key is optional.
+
+# Who evaluates the postings that survive the zero-cost steps:
+#   claude      Claude Code CLI (`claude -p`), full A-G reports in one batch
+#   openrouter  OpenRouter free models (needs OPENROUTER_API_KEY in .env)
+#   gemini      Google Gemini (needs GEMINI_API_KEY in .env)
+#   ollama      a local Ollama model (free, private; needs `ollama serve`)
+#   openai      any OpenAI-compatible endpoint (OPENAI_API_KEY, OPENAI_BASE_URL)
+#   none        no AI at all: the board ranks, liveness-checks and lists postings
+judge: none
+
+# How many queued postings to liveness-check and fetch a job description for per run.
+prep_count: 40
+
+# Cap on postings an API judge (openrouter/gemini/ollama/openai) evaluates per run.
+# Each one is a model call; raise it once you trust the cost.
+max_evaluations: 10
+
+# Steps (true/false). scan = query your portals.yml companies; recheck = re-verify
+# that already-evaluated roles are still open.
+scan: true
+recheck: true
+
+# Reverse ATS sweep: keyword-first search over all public Greenhouse/Lever/Ashby
+# boards, no company list needed. Good when you have few companies in portals.yml.
+sweep: {"enabled": false, "minutes": 25, "since_days": 4, "ats": "greenhouse,lever,ashby"}
+
+# Per-step time limits in minutes. A step over its limit is stopped; the run continues.
+budgets: {"scan": 20, "prep": 40, "recheck": 15, "judge": 60}
+
+# Open the board in your browser when the run finishes.
+open: false
