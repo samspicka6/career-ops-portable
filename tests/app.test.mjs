@@ -69,12 +69,13 @@ const cvRes = await req('POST', '/api/cv', { 'Content-Type': 'application/json',
 check(cvRes.status === 200 && JSON.parse(cvRes.body).markdown.startsWith('# Jo Doe'), 'a POST with the token works');
 app.close();
 
-// daily schedule
+// daily schedule (a made-up macOS home folder, built so no literal user path is checked in)
+const MAC_HOME = ['', 'Users', 'a'].join('/');
 check(cronLine('07:05', '/usr/bin/node', "/opt/it's here").startsWith("5 7 * * * cd '/opt/it'\\''s here' && '/usr/bin/node' board.mjs"), 'cron line quotes paths and sets the time');
-const plist = plistFor('18:30', '/usr/local/bin/node', '/Users/a/career-ops & co');
+const plist = plistFor('18:30', '/usr/local/bin/node', `${MAC_HOME}/career-ops & co`);
 check(plist.includes('<integer>18</integer>') && plist.includes('<integer>30</integer>') && plist.includes('career-ops &amp; co'), 'LaunchAgent plist has the time and escapes paths');
-check(/Downloads/.test(scheduleWarning('darwin', '/Users/a/Downloads/career-ops', '/Users/a')), 'macOS warns about a folder in Downloads');
-check(scheduleWarning('darwin', '/Users/a/career-ops', '/Users/a') === '' && scheduleWarning('win32', 'C:\\Users\\a\\Downloads\\x', 'C:\\Users\\a') === '', 'no warning elsewhere');
+check(/Downloads/.test(scheduleWarning('darwin', `${MAC_HOME}/Downloads/career-ops`, MAC_HOME)), 'macOS warns about a folder in Downloads');
+check(scheduleWarning('darwin', `${MAC_HOME}/career-ops`, MAC_HOME) === '' && scheduleWarning('win32', 'C:\\Users\\a\\Downloads\\x', 'C:\\Users\\a') === '', 'no warning elsewhere');
 
 // updater: tarball reading and writing over a ZIP copy
 function tarEntry(name, body = '', type = '0', mode = 0o644) {

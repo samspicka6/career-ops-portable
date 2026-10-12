@@ -226,6 +226,8 @@ const SYSTEM_PATHS = [
   '_Start Career-Ops (Windows).bat',
   '_Start Career-Ops (Mac).command',
   'start-linux.sh',
+  '.npmrc',
+  'lib/cv-text.mjs',
   'auto/',
   'judges/',
   'lib/board-config.mjs',
