@@ -30,6 +30,13 @@ LICENSE    text eol=lf
 VERSION    text eol=lf
 cops       text eol=lf
 
+# Double-click launchers. The Windows one must keep CRLF (cmd.exe misreads
+# labels and blocks in an LF batch file), so it is stored byte for byte.
+*.bat     -text
+*.command text eol=lf
+*.sh      text eol=lf
+*.ps1     text eol=lf
+
 # Binary assets — never normalized
 *.png   binary
 *.jpg   binary

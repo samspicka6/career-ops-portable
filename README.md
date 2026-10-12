@@ -145,7 +145,33 @@ career-ops is the first reference implementation of [the CareerOps Manifesto](ht
 
 ## Quick Start
 
-**No AI CLI needed — two commands:** (how it all works: [Portable Guide](#portable-guide-how-everything-works))
+### Easiest: no terminal, no commands
+
+1. **Download.** On this page click the green **Code** button, then **Download ZIP**.
+   Unzip it (double-click the file) and move the folder somewhere you'll keep it,
+   such as your home folder. On a Mac, keep it out of Downloads, Desktop and
+   Documents if you want daily searches (macOS blocks background jobs there).
+2. **Start.** Open the folder and double-click:
+   - Windows: **`_Start Career-Ops (Windows).bat`**
+   - Mac: **`_Start Career-Ops (Mac).command`**
+
+   The first time, Windows or macOS may warn you about a downloaded file
+   ([what to click](#the-first-start-windows-and-mac-warnings)). If Node.js
+   isn't installed, the launcher offers to install it for you. The first start
+   then downloads what Career-Ops needs, which takes a few minutes.
+3. **Set up in your browser.** Career-Ops opens a page in your browser. Upload
+   your CV (PDF, Word or text), check what it read, say which jobs and places
+   you want, and pick an AI helper or none. That's it.
+4. **Find jobs.** Press **Find new jobs**, then **Open my job board**. Turn on
+   **Search every day** to have it run on its own each morning.
+
+To use it again later, double-click the same Start file. Updates are one
+button: **Check for updates** in the app (your files are never touched). The
+full walkthrough is in [The app](#the-app-setup-and-daily-use-without-a-terminal).
+
+### With a terminal: two commands
+
+How it all works: [Portable Guide](#portable-guide-how-everything-works).
 
 ```bash
 git clone <this repo> career-ops && cd career-ops && npm install
@@ -155,7 +181,7 @@ npm run board    # scan → verify live → judge (optional) → your job board
 
 `npm run setup` asks a few questions and writes everything for you: it creates a
 data folder (default `../career-ops-data`, so the checkout stays a clean engine
-you can update), turns a pasted CV or a `.md` / `.txt` / `.pdf` file into
+you can update), turns a pasted CV or a `.pdf` / `.docx` / `.txt` / `.md` file into
 `cv.md`, fills `config/profile.yml` and the target roles in `modes/_profile.md`,
 sets the title keywords and locations in `portals.yml`, and picks a judge.
 Re-run it any time; it keeps what you already have unless you say otherwise.
@@ -302,10 +328,74 @@ So you can keep several searches side by side (for example `~/search-2026`
 and `~/search-partner`) and switch with
 `CAREER_OPS_DATA_DIR=~/search-partner npm run board`.
 
+### The app: setup and daily use without a terminal
+
+The Start files and `npm start` all run `app/launch.mjs`, which:
+
+1. checks Node.js (18 or newer). The Windows and Mac launchers offer to install
+   it when it's missing: Windows through `winget`, or the official installer
+   from nodejs.org when `winget` isn't there; Mac by downloading and opening
+   the official installer;
+2. runs `npm install` the first time, and again only when `package.json`
+   changed (after an update). This includes the browser Playwright uses for
+   liveness checks, a few hundred MB;
+3. starts a small local web server (`app/server.mjs`) on
+   `http://127.0.0.1:4747` (the next free port if that one is busy) and opens
+   it in your browser. It only accepts connections from this computer.
+   Double-clicking Start again while it runs just reopens the page. Closing the
+   launcher window (or **Close** in the app) stops it.
+
+**The setup wizard** asks the same things as `npm run setup`, in six screens:
+your CV, about you, jobs you want, where to look, AI helper, and a summary.
+It then runs `setup.mjs` with your answers as flags, so the files it writes are
+exactly the ones the terminal setup writes (see Step 1 below). A few
+differences:
+
+- You can upload the CV file (PDF, Word `.docx` or text) instead of pasting.
+  It is read on your computer by `lib/cv-text.mjs` (pdf.js for PDFs, mammoth
+  for Word; the terminal setup uses the same code), and you see the converted
+  text and can fix it before saving. A scanned-image PDF has no text to read;
+  paste the text instead.
+- The data folder defaults to `career-ops-data` in your home folder (the
+  terminal setup defaults to next to the checkout). Keeping it outside the app
+  folder means deleting or replacing the app never loses your files. If you
+  download a fresh copy of the app, it finds that folder and picks up where you
+  left off.
+- An API key you paste for an AI helper goes into `.env` in the app folder,
+  the same as the terminal setup.
+
+**The home screen** is what you see every time after that:
+
+| Button | What it runs |
+|--------|--------------|
+| Find new jobs | `node board.mjs` (the full run in Step 2 below), with each step's progress and the log shown live. |
+| Open my job board | `output/career-dashboard.html` from your data folder. |
+| Jobs waiting for a look | `output/queue.html`, the live postings no AI has reviewed yet. |
+| Edit (your CV and preferences) | The setup wizard again, filled in with your current answers. |
+| Search every day | Registers one daily `board.mjs` run (`app/schedule.mjs`): Windows Task Scheduler task "Career-Ops Board", a macOS LaunchAgent `org.career-ops.board`, or a tagged crontab line on Linux. The computer must be on at that time. |
+| Check for updates | `app/update.mjs`: `git pull` in a git checkout; in a ZIP copy, downloads the newest version from GitHub and writes the engine files over the old ones. `.env`, `.career-ops-data`, `node_modules` and your data folder are never touched. Close and reopen the app afterwards. |
+| Open folder | Opens your data folder. |
+| Rebuild | `node board.mjs --build-only`: redraws the board without searching. |
+
+Updates come from the repository named in `package.json` under
+`careerOpsPortable.updateRepo` (and `.branch`), so a fork updates from itself.
+
+#### The first start: Windows and Mac warnings
+
+Files downloaded from the internet get a warning the first time:
+
+- **Windows** ("Windows protected your PC"): click **More info**, then
+  **Run anyway**.
+- **Mac** ("cannot be opened" or "Apple could not verify"): open **System
+  Settings → Privacy & Security**, scroll down, and click **Open Anyway** next
+  to the Career-Ops message, then double-click the file again. On older macOS,
+  right-click the file and choose **Open**.
+
 ### Commands at a glance
 
 | Command | What it does | Uses AI? |
 |---------|--------------|----------|
+| `npm start` | The app: setup wizard and home screen in your browser (what the Start files run). | Only if you pick an AI helper |
 | `npm run setup` | Guided first run: data folder, CV, profile, portals, judge. Safe to re-run. | No |
 | `npm run board` | The daily loop: scan → prep → recheck → judge → board → (sweep). | Only the judge step, and only if you pick one |
 | `npm run board:build` | Rebuild the board pages from what is already on disk. | No |
@@ -322,7 +412,7 @@ Each step shows what is already there and keeps it unless you say otherwise.
 1. **Data folder.** Creates it from the templates (`init-data.mjs`) and
    writes the `.career-ops-data` marker. Default `../career-ops-data`; pass
    `--in-place` to keep data in the checkout instead.
-2. **CV.** Paste it, or give a `.md`, `.txt` or `.pdf` path. It is converted to
+2. **CV.** Paste it, or give a `.pdf`, `.docx`, `.txt` or `.md` path. It is converted to
    `cv.md` without AI, so glance at the headings once. `cv.md` is the single
    source of truth: reports and cover-letter bullets may only restate what is
    in it, never invent.
@@ -361,7 +451,7 @@ run ever submits or applies to anything.
 | 3 | **recheck** | `auto/recheck.mjs` | Re-verifies roles you have evaluated but not applied to. Postings that are conclusively closed are set to *Discarded* with a "posting closed" note. | `data/applications.md` |
 | 4 | **judge** | `judges/` | Evaluates the live postings from prep with the model you chose (see below). Skipped with `judge: none`. | `data/auto/batch.json` → `reports/*.md`, `data/applications.md` |
 | 5 | **board** | `auto/dashboard.mjs`, `lib/board-queue.mjs` | Builds the two pages you look at. | tracker + reports → `output/career-dashboard.html`, `output/queue.html` |
-| 6 | **sweep** | `scan-ats-full.mjs` | Optional keyword-first search across all public Greenhouse/Lever/Ashby boards; matches are queued for the next run's prep. Resumes from a checkpoint if it ran out of time. | → `data/pipeline.md` |
+| 6 | **sweep** | `scan-ats-full.mjs` | Optional keyword-first search across all public Greenhouse/Lever/Ashby boards; matches are queued for the next run's prep. When the queue is empty (a first run, for example) it runs first instead, so that run has postings to check. Resumes from a checkpoint if it ran out of time. | → `data/pipeline.md` |
 
 Every step's start, end and duration go to `data/board.log` in your data folder.
 
@@ -451,7 +541,8 @@ Useful one-off flags: `--judge none`, `--n 20` (postings to prep),
 
 ### Running it every day
 
-Schedule the one command; it takes care of the rest. Examples (see
+In the app, turn on **Search every day** and pick a time. To do it by hand,
+schedule the one command; it takes care of the rest. Examples (see
 [docs/AUTOMATION.md](docs/AUTOMATION.md) for more):
 
 ```bash
@@ -481,7 +572,8 @@ it reads and writes your data folder, never invents facts that are not in
 
 ### Keeping it up to date
 
-The engine and your data are separate, so updating is just:
+The engine and your data are separate, so updating is just **Check for
+updates** in the app, or in a terminal:
 
 ```bash
 cd career-ops-portable && git pull && npm install
@@ -494,6 +586,21 @@ files inside the checkout, `npm run move-data` moves them into a data folder
 (use `--dry-run` first to see the list).
 
 ### Troubleshooting
+
+- **Double-clicking Start does nothing, or a window flashes and closes**: on
+  Windows, right-click the `.bat` file and choose **Open**; on a Mac, see
+  [the first start](#the-first-start-windows-and-mac-warnings). If a window
+  stays open with an error, the message says what is missing.
+- **The browser didn't open**: open `http://127.0.0.1:4747` yourself (the
+  launcher window prints the exact address).
+- **"Career-Ops is not running"** in the page: the launcher window was closed.
+  Double-click Start again.
+- **The first start stops during the install**: it needs internet. Start it
+  again; it continues where it left off. On Linux the browser install may ask
+  for your password to add system libraries.
+- **My CV came out jumbled**: fix it in the box on the CV screen (first line
+  your name, sections starting with `##`), or paste the text instead of
+  uploading the file.
 
 - **"setup isn't finished"** when running the board: a required file is
   missing from the data folder. Run `npm run setup` again; it keeps what exists.

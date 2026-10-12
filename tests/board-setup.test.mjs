@@ -69,3 +69,11 @@ check([...pendingUrls(moved)].join() === 'https://x.test/j/2', 'the other postin
 const html = buildQueuePage({ batch: [{ url: 'https://x.test/j/2', company: 'B<script>', title: 'BI', liveness: 'active', tier: 3, flags: [] }], pending: new Set(['https://x.test/j/2']), generated: 'now' });
 check(html.includes('B&lt;script&gt;') && !html.includes('B<script>'), 'queue page escapes posting text');
 check(loadBoardConfig('/nonexistent/board.yml').judge === DEFAULTS.judge, 'missing config/board.yml falls back to defaults');
+
+// re-running setup rewrites the location filter it wrote, and drops it for "anywhere"
+const once = fillPortals(portalsTpl, { keywords: ['Data Analyst'], locations: ['Denver'], entryLevel: false });
+const twice = yaml.load(fillPortals(once, { keywords: ['Data Analyst'], locations: ['Austin', 'Remote'], entryLevel: false }));
+check(twice.location_filter.allow.join('|') === 'Austin|Remote', 're-running setup replaces its own location list');
+check(!('location_filter' in yaml.load(fillPortals(once, { keywords: ['Data Analyst'], locations: [], entryLevel: false }))), 'blank locations remove the setup-written filter');
+const handWritten = 'location_filter:\n  allow:\n    - "Mars"\n' + portalsTpl;
+check(yaml.load(fillPortals(handWritten, { keywords: ['X'], locations: [], entryLevel: false })).location_filter.allow[0] === 'Mars', 'a hand-written location filter is kept');

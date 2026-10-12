@@ -8,6 +8,7 @@
 //               ollama | openai | none            (config/board.yml `judge:`)
 //   5. board    rebuild output/career-dashboard.html + output/queue.html (no AI)
 //   6. sweep    optional reverse-ATS sweep; matches are queued for next run
+//               (runs first instead when the queue is empty, e.g. a first run)
 //
 // Each step has a time limit (config/board.yml `budgets`); a step that fails or
 // runs over is reported and the run carries on, so the board always rebuilds.
@@ -28,7 +29,7 @@ import { join, resolve, isAbsolute } from 'path';
 import { spawn, spawnSync } from 'child_process';
 import { ENGINE_ROOT, DATA_ROOT, JUDGES, autoScript, loadBoardConfig, loadEnv } from './lib/board-config.mjs';
 import { runJudge } from './judges/index.mjs';
-import { writeQueuePage } from './lib/board-queue.mjs';
+import { writeQueuePage, pendingUrls } from './lib/board-queue.mjs';
 
 const argv = process.argv.slice(2);
 const flag = (name) => argv.includes(name);
@@ -78,10 +79,11 @@ function step(label, script, args, minutes) {
   });
 }
 
+// No shell: explorer.exe / open / xdg-open get the path as one argument, so a
+// data folder with & in its name can't be read as a second command.
 function openInBrowser(file) {
-  const [cmd, args] = process.platform === 'win32' ? ['cmd', ['/c', 'start', '', file]]
-    : process.platform === 'darwin' ? ['open', [file]] : ['xdg-open', [file]];
-  try { spawn(cmd, args, { detached: true, stdio: 'ignore' }).unref(); } catch { /* print the path instead */ }
+  const cmd = process.platform === 'win32' ? 'explorer.exe' : process.platform === 'darwin' ? 'open' : 'xdg-open';
+  try { const c = spawn(cmd, [file], { detached: true, stdio: 'ignore' }); c.on('error', () => { /* print the path instead */ }); c.unref(); } catch { /* print the path instead */ }
 }
 
 // ── preflight ────────────────────────────────────────────────────────────────
@@ -98,8 +100,23 @@ log(`=== board run: judge ${cfg.judge}${buildOnly ? ' (build only)' : ''} · dat
 const t0 = Date.now();
 const results = {};
 
+async function sweep() {
+  const ckpt = join(DATA_ROOT, 'data', 'cache', 'ats-full-checkpoint.json');
+  const args = ['--since', String(cfg.sweep.since_days), '--ats', cfg.sweep.ats];
+  if (existsSync(ckpt)) args.push('--resume');
+  results.sweep = await step('sweep', 'scan-ats-full.mjs', args, Math.floor(cfg.sweep.minutes));
+}
+
+// The sweep normally runs last and feeds the next run. With an empty queue (a
+// first run, or a sweep-only setup that has caught up) it runs first instead,
+// so this run has postings to verify and the board isn't empty.
+const pipelinePath = join(DATA_ROOT, 'data', 'pipeline.md');
+const queueEmpty = !existsSync(pipelinePath) || pendingUrls(readFileSync(pipelinePath, 'utf8')).size === 0;
+const sweepFirst = !buildOnly && cfg.sweep.enabled && queueEmpty;
+
 if (!buildOnly) {
   if (cfg.scan) results.scan = await step('scan', 'scan.mjs', [], cfg.budgets.scan);
+  if (sweepFirst) await sweep();
   results.prep = await step('prep', autoScript('prep.mjs'), ['--n', String(cfg.prep_count)], cfg.budgets.prep);
   if (cfg.recheck) results.recheck = await step('recheck', autoScript('recheck.mjs'), [], cfg.budgets.recheck);
 
@@ -126,13 +143,7 @@ results.board = await step('board', autoScript('dashboard.mjs'), [], 5);
 const queue = writeQueuePage(DATA_ROOT);
 log(`--- queue: ${queue.count} live posting(s) waiting → ${queue.path}`);
 
-if (!buildOnly && cfg.sweep.enabled) {
-  const left = Math.floor(cfg.sweep.minutes);
-  const ckpt = join(DATA_ROOT, 'data', 'cache', 'ats-full-checkpoint.json');
-  const args = ['--since', String(cfg.sweep.since_days), '--ats', cfg.sweep.ats];
-  if (existsSync(ckpt)) args.push('--resume');
-  results.sweep = await step('sweep', 'scan-ats-full.mjs', args, left);
-}
+if (!buildOnly && cfg.sweep.enabled && !sweepFirst) await sweep();
 
 const boardFile = join(DATA_ROOT, 'output', 'career-dashboard.html');
 const failed = Object.entries(results).filter(([, r]) => r && r.ok === false).map(([k]) => k);
