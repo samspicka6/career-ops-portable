@@ -4,7 +4,7 @@
 //
 //   1. data folder   where your CV, profile, tracker and reports live
 //                    (init-data.mjs; default ../career-ops-data)
-//   2. CV            paste it, or point at a .md / .txt / .pdf file
+//   2. CV            paste it, or point at a .pdf / .docx / .txt / .md file
 //   3. profile       name, contact, location, target roles → config/profile.yml
 //                    and the target-roles table in modes/_profile.md
 //   4. portals       title keywords, locations, and how to find postings
@@ -24,6 +24,7 @@ import { createInterface } from 'readline/promises';
 import * as yaml from 'js-yaml';
 import { getCareerOpsRoot } from './path-resolver.mjs';
 import { isMainModule } from './lib/is-main-module.mjs';
+import { cvFileToText } from './lib/cv-text.mjs';
 import { ENGINE_ROOT, JUDGES, detectJudges, hasKey, loadBoardConfig, saveBoardConfig, setEnvKey } from './lib/board-config.mjs';
 
 // ── args ────────────────────────────────────────────────────────────────────
@@ -121,17 +122,9 @@ export function contactFromCv(md) {
   };
 }
 
-function readCvFile(file) {
+async function readCvFile(file) {
   const ext = extname(file).toLowerCase();
-  if (ext === '.pdf') {
-    const r = spawnSync('pdftotext', ['-layout', file, '-'], { encoding: 'utf8' });
-    if (r.status !== 0 || !r.stdout.trim()) {
-      throw new Error('could not read the PDF (needs pdftotext from Poppler: `brew install poppler`, `apt install poppler-utils`, or on Windows `choco install poppler`). You can also save the CV as .txt or paste it.');
-    }
-    return textToMarkdown(r.stdout.replace(/ {3,}/g, '  '));
-  }
-  if (ext === '.docx' || ext === '.doc') throw new Error('Word files are not read directly: save it as PDF or plain text, or paste it.');
-  const text = readFileSync(file, 'utf8');
+  const text = await cvFileToText(readFileSync(file), ext);
   return ext === '.md' ? text : textToMarkdown(text);
 }
 
@@ -219,6 +212,10 @@ export function fillPortals(template, { keywords, locations, entryLevel }) {
     t = head + body;
   }
   if (entryLevel) t = t.replace(/^    - "Junior"\s*\n/m, '');
+  // A filter setup wrote earlier is rewritten (or removed when the answer is
+  // now "anywhere"); one the user wrote by hand is left alone.
+  const SETUP_LF = /# Written by npm run setup\. Postings whose[^\n]*\n(?:#[^\n]*\n)*location_filter:\n  allow:\n(?:    - [^\n]*\n)*\n?/;
+  if (SETUP_LF.test(t)) t = t.replace(SETUP_LF, '');
   if (locations.length && !/^location_filter:/m.test(t)) {
     const block = `# Written by npm run setup. Postings whose structured location matches none of
 # these are skipped; edit freely (see the location_filter notes above).
@@ -275,8 +272,8 @@ async function main() {
   }
   if (opt.cv || cvIsStub || (!AUTO && await yesNo('Replace it?', false))) {
     let source = opt.cv;
-    if (!source && !AUTO) source = await ask('Path to your CV file (.md, .txt or .pdf), or press Enter to paste it', '');
-    if (source) cv = readCvFile(resolve(process.cwd(), source.replace(/^["']|["']$/g, '')));
+    if (!source && !AUTO) source = await ask('Path to your CV file (.pdf, .docx, .txt or .md), or press Enter to paste it', '');
+    if (source) cv = await readCvFile(resolve(process.cwd(), source.replace(/^["']|["']$/g, '')));
     else if (!AUTO) cv = textToMarkdown(await pasteBlock('Paste your CV text:'));
     if (cv.trim() && cv !== cvNow) { writeFileSync(cvPath, cv); say(`Saved cv.md (${cv.split('\n').length} lines). Check the headings once: it was converted without AI.`); }
     else if (cvIsStub) say('No CV given: cv.md is still the stub. Re-run setup or edit cv.md before judging postings.');

@@ -203,3 +203,7 @@ documents/*
 # Intake fingerprints — the recorded source filenames may themselves carry
 # PII (e.g. cv/jane-doe-master-cv.pdf). #1723
 data/intake-state.json
+
+# Local app (app/): written at runtime, per machine
+app/.installed-commit
+app/run-board.cmd
