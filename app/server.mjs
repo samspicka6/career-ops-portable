@@ -48,7 +48,9 @@ export function openExternal(target) {
   const [cmd, args] = process.platform === 'win32' ? ['cmd', ['/c', 'start', '""', `"${target}"`]]
     : process.platform === 'darwin' ? ['open', [target]] : ['xdg-open', [target]];
   try {
-    spawn(cmd, args, { detached: true, stdio: 'ignore', windowsVerbatimArguments: process.platform === 'win32' }).unref();
+    const child = spawn(cmd, args, { detached: true, stdio: 'ignore', windowsVerbatimArguments: process.platform === 'win32' });
+    child.on('error', () => { /* no opener (e.g. no xdg-open): the address is printed instead */ });
+    child.unref();
     return true;
   } catch { return false; }
 }

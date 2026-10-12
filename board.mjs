@@ -82,7 +82,7 @@ function step(label, script, args, minutes) {
 function openInBrowser(file) {
   const [cmd, args] = process.platform === 'win32' ? ['cmd', ['/c', 'start', '', file]]
     : process.platform === 'darwin' ? ['open', [file]] : ['xdg-open', [file]];
-  try { spawn(cmd, args, { detached: true, stdio: 'ignore' }).unref(); } catch { /* print the path instead */ }
+  try { const c = spawn(cmd, args, { detached: true, stdio: 'ignore' }); c.on('error', () => { /* print the path instead */ }); c.unref(); } catch { /* print the path instead */ }
 }
 
 // ── preflight ────────────────────────────────────────────────────────────────
