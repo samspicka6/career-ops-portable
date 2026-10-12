@@ -79,10 +79,11 @@ function step(label, script, args, minutes) {
   });
 }
 
+// No shell: explorer.exe / open / xdg-open get the path as one argument, so a
+// data folder with & in its name can't be read as a second command.
 function openInBrowser(file) {
-  const [cmd, args] = process.platform === 'win32' ? ['cmd', ['/c', 'start', '', file]]
-    : process.platform === 'darwin' ? ['open', [file]] : ['xdg-open', [file]];
-  try { const c = spawn(cmd, args, { detached: true, stdio: 'ignore' }); c.on('error', () => { /* print the path instead */ }); c.unref(); } catch { /* print the path instead */ }
+  const cmd = process.platform === 'win32' ? 'explorer.exe' : process.platform === 'darwin' ? 'open' : 'xdg-open';
+  try { const c = spawn(cmd, [file], { detached: true, stdio: 'ignore' }); c.on('error', () => { /* print the path instead */ }); c.unref(); } catch { /* print the path instead */ }
 }
 
 // ── preflight ────────────────────────────────────────────────────────────────
