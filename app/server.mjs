@@ -44,11 +44,14 @@ const loadYaml = (f) => { try { return yaml.load(read(f)) || {}; } catch { retur
 const mtime = (f) => { try { return statSync(f).mtime.toISOString(); } catch { return null; } };
 const markerPath = join(ENGINE, '.career-ops-data');
 
+// Opens a URL or folder with the system's default handler, never through a
+// shell, so a path with & or quotes in it (C:\Users\Tom & Jerry) is passed as
+// one argument and can't be read as a command. explorer.exe opens both URLs
+// (in the default browser) and folders on Windows.
 export function openExternal(target) {
-  const [cmd, args] = process.platform === 'win32' ? ['cmd', ['/c', 'start', '""', `"${target}"`]]
-    : process.platform === 'darwin' ? ['open', [target]] : ['xdg-open', [target]];
+  const cmd = process.platform === 'win32' ? 'explorer.exe' : process.platform === 'darwin' ? 'open' : 'xdg-open';
   try {
-    const child = spawn(cmd, args, { detached: true, stdio: 'ignore', windowsVerbatimArguments: process.platform === 'win32' });
+    const child = spawn(cmd, [target], { detached: true, stdio: 'ignore' });
     child.on('error', () => { /* no opener (e.g. no xdg-open): the address is printed instead */ });
     child.unref();
     return true;
