@@ -10,7 +10,7 @@
 import { spawnSync } from 'child_process';
 import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
 import { homedir } from 'os';
-import { dirname, join } from 'path';
+import { dirname, join, posix } from 'path';
 import { fileURLToPath } from 'url';
 
 const ENGINE = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -29,7 +29,7 @@ const xml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 // user grants access, so a daily run from there fails quietly. Say so up front.
 export function scheduleWarning(platform = process.platform, engine = ENGINE, home = homedir()) {
   if (platform !== 'darwin') return '';
-  const protectedDir = ['Desktop', 'Documents', 'Downloads'].find((d) => engine.startsWith(join(home, d) + '/'));
+  const protectedDir = ['Desktop', 'Documents', 'Downloads'].find((d) => engine.startsWith(posix.join(home, d) + '/'));
   return protectedDir
     ? `The Career-Ops folder is inside ${protectedDir}, where macOS stops background jobs from reading files. Move the folder to your home folder (${home}) first, then turn daily runs on.`
     : '';
