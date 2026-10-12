@@ -54,6 +54,6 @@ set "NODE_OK="
 if exist "%ProgramFiles%\nodejs\node.exe" set "PATH=%ProgramFiles%\nodejs;%PATH%"
 where node >nul 2>nul
 if errorlevel 1 exit /b
-node -e "process.exit(+process.versions.node.split(.)[0] >= 18 ? 0 : 1)" >nul 2>nul
+node -e "process.exit(parseInt(process.versions.node, 10) >= 18 ? 0 : 1)" >nul 2>nul
 if not errorlevel 1 set "NODE_OK=1"
 exit /b

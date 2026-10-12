@@ -11,7 +11,7 @@
 import { spawnSync } from 'child_process';
 import { createHash } from 'crypto';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
-import { dirname, join } from 'path';
+import { delimiter, dirname, join } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { isMainModule } from '../lib/is-main-module.mjs';
 
@@ -41,7 +41,10 @@ export function needsInstall() {
 // npm sits next to node in every official install; put that folder first on
 // PATH so a Node that was installed a minute ago is found without a new login.
 export function runNpmInstall({ quiet = false } = {}) {
-  const env = { ...process.env, PATH: `${dirname(process.execPath)}${process.platform === 'win32' ? ';' : ':'}${process.env.PATH || ''}` };
+  // Windows names the variable "Path"; a second "PATH" key would leave the
+  // child with two and no telling which one it reads.
+  const key = Object.keys(process.env).find((k) => k.toUpperCase() === 'PATH') || 'PATH';
+  const env = { ...process.env, [key]: `${dirname(process.execPath)}${delimiter}${process.env[key] || ''}` };
   if (!quiet) {
     console.log('\nInstalling what Career-Ops needs (first run or after an update).');
     console.log('This downloads a few hundred MB, including a browser used to check that postings are still open.');

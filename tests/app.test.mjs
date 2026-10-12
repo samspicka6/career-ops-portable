@@ -5,6 +5,7 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync } from 
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { gzipSync, gunzipSync } from 'zlib';
+import { spawnSync } from 'child_process';
 import { pass, fail, rmSync } from './helpers.mjs';
 import { setupArgs, convertCv, createApp } from '../app/server.mjs';
 import { cronLine, plistFor, scheduleWarning } from '../app/schedule.mjs';
@@ -76,6 +77,18 @@ const plist = plistFor('18:30', '/usr/local/bin/node', `${MAC_HOME}/career-ops &
 check(plist.includes('<integer>18</integer>') && plist.includes('<integer>30</integer>') && plist.includes('career-ops &amp; co'), 'LaunchAgent plist has the time and escapes paths');
 check(/Downloads/.test(scheduleWarning('darwin', `${MAC_HOME}/Downloads/career-ops`, MAC_HOME)), 'macOS warns about a folder in Downloads');
 check(scheduleWarning('darwin', `${MAC_HOME}/career-ops`, MAC_HOME) === '' && scheduleWarning('win32', 'C:\\Users\\a\\Downloads\\x', 'C:\\Users\\a') === '', 'no warning elsewhere');
+
+// launchers: the Node version check each Start file runs must be valid
+// JavaScript, or it reports "no Node.js" on every computer (cmd.exe passes the
+// text inside the double quotes to node as is).
+const bat = readFileSync(new URL('../_Start Career-Ops (Windows).bat', import.meta.url), 'utf8');
+const batChecks = [...bat.matchAll(/node -e "([^"]+)"/g)].map((m) => m[1]);
+check(batChecks.length > 0 && batChecks.every((code) => spawnSync(process.execPath, ['-e', code]).status === 0),
+  'the Windows Start file recognises this Node.js as new enough');
+const mac = readFileSync(new URL('../_Start Career-Ops (Mac).command', import.meta.url), 'utf8');
+const macCheck = (mac.match(/node -p '([^']+)'/) || [])[1];
+check(Boolean(macCheck) && Number(spawnSync(process.execPath, ['-p', macCheck], { encoding: 'utf8' }).stdout.trim()) >= 18,
+  'the Mac Start file reads the Node.js major version');
 
 // updater: tarball reading and writing over a ZIP copy
 function tarEntry(name, body = '', type = '0', mode = 0o644) {
